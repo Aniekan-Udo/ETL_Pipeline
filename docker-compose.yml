@@ -1,0 +1,31 @@
+# docker-compose.yml
+version: '3.8' # Specify the Docker Compose file format version
+
+services:
+  mongodb:
+    image: mongo:latest # Use the official MongoDB image from Docker Hub
+    container_name: mongodb_container # A recognizable name for your container
+    restart: always # Always restart if the container stops (e.g., due to host reboot)
+    ports:
+      - "27017:27017" # Map host port 27017 to container port 27017 (default MongoDB port)
+    environment:
+      # Optional: Define environment variables for root user/password for security
+      # ONLY USE FOR DEVELOPMENT/TESTING. For production, use Airflow Connections/Secrets.
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      # Named volume for persistent data storage.
+      # Data will persist even if the container is removed.
+      - mongodb_data:/data/db
+      # Optional: If you have a custom MongoDB configuration file (mongod.conf)
+      # - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro # For initial database setup
+      # - ./mongod.conf:/etc/mongo/mongod.conf:ro # Mount a custom config file
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand({ping: 1})"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Define named volumes at the top level
+volumes:
+  mongodb_data: # This volume will store your MongoDB data
